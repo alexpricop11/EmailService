@@ -18,4 +18,4 @@ class SubscriberSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['sender', 'mailing_list', 'subject', 'body', 'timestamp']
+        fields = ['mailing_list', 'subject', 'body', 'timestamp']
