@@ -1,10 +1,10 @@
 from django.contrib.auth import authenticate
 from rest_framework import status
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.models import CustomUser
+
 from users.serializers import UserRegistrationSerializers, UserLoginSerializers
 
 
@@ -33,19 +33,15 @@ class UserLoginView(APIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
-            try:
-                user = CustomUser.objects.get(email=email)
-            except CustomUser.DoesNotExist:
-                user = None
+            user = authenticate(email=email, password=password)
             if user:
-                authenticated_user = authenticate(email=email, password=password)
-                token = AccessToken.for_user(authenticated_user)
+                token, created = Token.objects.get_or_create(user=user)
                 return Response({
-                    "email": authenticated_user.email,
+                    "email": user.email,
                     "message": "User logged in successfully",
-                    "token": str(token)
+                    "token": token.key
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response({"error": "No user found with this email address"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "No exists email"}, status=status.HTTP_404_NOT_FOUND)

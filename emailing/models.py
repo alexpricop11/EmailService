@@ -14,10 +14,10 @@ class MailingList(models.Model):
 
 class Subscriber(models.Model):
     mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE)
-    email = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    email = models.EmailField()
 
     def __str__(self):
-        return f"{self.mailing_list} - {self.email.email}"
+        return f"{self.mailing_list} - {self.email}"
 
 
 class Message(models.Model):
