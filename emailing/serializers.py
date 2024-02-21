@@ -4,9 +4,11 @@ from emailing.models import MailingList, Subscriber, Message
 
 
 class CreateMailingListSerializer(serializers.ModelSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = MailingList
-        fields = ['name', 'created_by']
+        fields = ['name_list', 'created_by']
 
 
 class SubscriberSerializer(serializers.ModelSerializer):

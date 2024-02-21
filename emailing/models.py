@@ -5,11 +5,11 @@ from users.models import CustomUser
 
 class MailingList(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=250)
+    name_list = models.CharField(max_length=250)
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.name} created by {self.created_by}"
+        return f"{self.name_list} created by {self.created_by}"
 
 
 class Subscriber(models.Model):

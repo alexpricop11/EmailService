@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
@@ -31,17 +30,12 @@ class UserLoginView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
-            password = serializer.validated_data['password']
-            user = authenticate(email=email, password=password)
-            if user:
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({
-                    "email": user.email,
-                    "message": "User logged in successfully",
-                    "token": token.key
-                }, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            return Response({"error": "No exists email"}, status=status.HTTP_404_NOT_FOUND)
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            print(token.key)
+            return Response({
+                "email": user.email,
+                "message": "User logged in successfully",
+                "token": token.key
+            }, status=status.HTTP_200_OK)
+        return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)

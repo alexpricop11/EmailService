@@ -1,24 +1,27 @@
+from django.contrib.auth.decorators import login_required
 from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from emailing.serializers import CreateMailingListSerializer
+from users.models import CustomUser
 
 
 class CreateMailingList(APIView):
-    authentication_classes = [TokenAuthentication]
     serializer_class = CreateMailingListSerializer
-    permission_classes = (IsAuthenticated, )
 
+    @login_required
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            name = serializer.validated_data['name']
-            if name:
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            if isinstance(request.user, CustomUser):
+                name = serializer.validated_data.get('name_list')
+                if name:
+                    serializer.save(created_by=request.user)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"error": "Name field is required."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AddSubscriber(APIView):
