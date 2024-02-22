@@ -49,9 +49,8 @@ class UserLoginSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_token(user):
         payload = {
-            'user_id': user.id,
             'email': user.email,
             'exp': datetime.now(timezone.utc) + timedelta(days=7),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-        return token.decode('utf-8')
+        return token

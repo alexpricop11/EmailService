@@ -19,4 +19,3 @@ class SubscriberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscriber
         fields = ['email', 'mailing_list']
-
