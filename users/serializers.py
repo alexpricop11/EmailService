@@ -1,11 +1,8 @@
 from datetime import datetime, timedelta
-
 import jwt
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
 from EmailService.settings import SECRET_KEY
 from .models import CustomUser
 
@@ -22,7 +19,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        user = CustomUser.objects.create_user(**validated_data)
         user.set_password(validated_data['password'])
         user.save()
         return user

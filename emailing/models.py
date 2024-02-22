@@ -17,7 +17,7 @@ class Subscriber(models.Model):
     email = models.EmailField()
 
     def __str__(self):
-        return f"{self.mailing_list} - {self.email}"
+        return f"{self.email} is in |{self.mailing_list}|"
 
 
 class Message(models.Model):
