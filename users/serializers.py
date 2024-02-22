@@ -1,16 +1,20 @@
+from datetime import datetime, timedelta
+
+import jwt
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from EmailService.settings import SECRET_KEY
 from .models import CustomUser
 
 
-class UserRegistrationSerializers(serializers.ModelSerializer):
+class UserRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=CustomUser.objects.all(), message='This email is already in use.')]
     )
-    password = serializers.CharField(min_length=6, error_messages={"min_length": "The password must be longer than 6 "
-                                                                                 "characters"})
+    password = serializers.CharField(min_length=8, write_only=True)
 
     class Meta:
         model = CustomUser
@@ -18,11 +22,13 @@ class UserRegistrationSerializers(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        user = CustomUser.objects.create_user(**validated_data)
+        user = User.objects.create_user(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
         return user
 
 
-class UserLoginSerializers(serializers.ModelSerializer):
+class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     password = serializers.CharField(max_length=120, write_only=True)
 
@@ -31,8 +37,8 @@ class UserLoginSerializers(serializers.ModelSerializer):
         fields = ['email', 'password']
 
     def validate(self, data):
-        email = data.get("email")
-        password = data.get("password")
+        email = data.get("email", None)
+        password = data.get("password", None)
 
         if not email or not password:
             raise serializers.ValidationError("Email and password are required.")
@@ -42,3 +48,12 @@ class UserLoginSerializers(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid email or password.")
 
         return {"email": email, "password": password}
+
+    def get_token(self, user):
+        payload = {
+            'user_id': user.id,
+            'email': user.email,
+            'exp': datetime.utcnow() + timedelta(days=7),
+        }
+        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+        return token.decode('utf-8')
