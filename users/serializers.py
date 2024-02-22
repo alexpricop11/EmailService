@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 from django.contrib.auth import authenticate
 from rest_framework import serializers
@@ -46,11 +46,12 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
         return {"email": email, "password": password}
 
-    def get_token(self, user):
+    @staticmethod
+    def get_token(user):
         payload = {
             'user_id': user.id,
             'email': user.email,
-            'exp': datetime.utcnow() + timedelta(days=7),
+            'exp': datetime.now(timezone.utc) + timedelta(days=7),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
         return token.decode('utf-8')
