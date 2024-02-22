@@ -30,7 +30,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'utilizator_smtp'
 EMAIL_HOST_PASSWORD = 'parola_smtp'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 

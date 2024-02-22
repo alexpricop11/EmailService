@@ -41,4 +41,4 @@ class UserLoginSerializers(serializers.ModelSerializer):
         if not user:
             raise serializers.ValidationError("Invalid email or password.")
 
-        return {"user": user}
+        return {"email": email, "password": password}
