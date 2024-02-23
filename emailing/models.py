@@ -13,8 +13,8 @@ class MailingList(models.Model):
 
 
 class Subscriber(models.Model):
-    mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE)
     email = models.EmailField()
+    mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.email} is in |{self.mailing_list}|"
