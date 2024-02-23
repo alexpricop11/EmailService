@@ -39,7 +39,7 @@ class AddSubscriber(APIView):
 
     def post(self, request):
         try:
-            serializer = self.serializer_class(data=request.data)
+            serializer = self.serializer_class(data=request.data, many=True)
             if serializer.is_valid(raise_exception=True):
                 email = serializer.validated_data['email']
                 mail_list = serializer.validated_data['mailing_list']
