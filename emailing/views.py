@@ -1,11 +1,11 @@
-from rest_framework import status
 from django.core.mail import send_mail
+from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from emailing.models import Subscriber
+from emailing.models import Subscriber, MailingList
 from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer
 from users.models import CustomUser
 
@@ -42,22 +42,29 @@ class AddSubscriber(APIView):
 
     def post(self, request):
         try:
-            serializer = self.serializer_class(data=request.data, context={'request': request, 'user': request.user})
+            serializer = self.serializer_class(data=request.data,
+                                               context={'request': request, 'user': request.user})
             serializer.is_valid(raise_exception=True)
-            serializer.save()
             emails = serializer.validated_data.get('emails')
-            mailing_list = serializer.validated_data.get('mailing_list')
-            if emails and mailing_list:
-                for email in emails:
-                    if not Subscriber.objects.filter(email=email, mailing_list=mailing_list).exists():
-                        Subscriber.objects.create(email=email, mailing_list=mailing_list)
-                        return Response({'Message': f'Email: {emails}, has been added to the in {mailing_list}'},
-                                        status=status.HTTP_200_OK)
-                    else:
-                        return Response({'Error': f'{email} email exists in {mailing_list}'})
-            else:
-                return Response({'Error': 'Both emails and mailing_list fields are required and cannot be empty.'},
-                                status=status.HTTP_400_BAD_REQUEST)
+            mailing_list_name = serializer.validated_data.get('mailing_list')
+            try:
+                mailing_list = MailingList.objects.get(name=mailing_list_name, created_by=request.user)
+            except MailingList.DoesNotExist:
+                return Response(
+                    {'Error': f"Mailing list '{mailing_list_name}' does not exist or you don't have access to it."},
+                    status=status.HTTP_404_NOT_FOUND)
+            existing_emails = Subscriber.objects.filter(email__in=emails, mailing_list=mailing_list).values_list(
+                'email', flat=True)
+            exist_emails = [email for email in emails if email in existing_emails]
+            if exist_emails:
+                return Response({
+                    'Error': f"{exist_emails} emails exist in the mailing list: {mailing_list}."},
+                    status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response({
+                'Message': f'Emails: {emails}, have been added to the mailing list: {mailing_list_name}'},
+                status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
