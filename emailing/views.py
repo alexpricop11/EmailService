@@ -39,18 +39,20 @@ class AddSubscriber(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data, context={'request': request, 'user': request.user})
-        if serializer.is_valid(raise_exception=True):
-            email = serializer.validated_data.get('email')
-            mail_list = serializer.validated_data.get('mailing_list')
-            if email and mail_list:
-                serializer.save()
-                return Response({'Message': f'Email: {email}, has been added to the in {mail_list}'},
+        try:
+            serializer = self.serializer_class(data=request.data, context={'request': request, 'user': request.user})
+            serializer.is_valid(raise_exception=True)
+
+            serializer.save()
+
+            emails = serializer.validated_data.get('emails')
+            mailing_list = serializer.validated_data.get('mailing_list')
+            if emails and mailing_list:
+                return Response({'Message': f'Email: {emails}, has been added to the in {mailing_list}'},
                                 status=status.HTTP_200_OK)
-            else:
-                return Response({'Error': 'Field is required.'})
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Error': 'a'})
+        except Exception as e:
+            return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SendMessage(APIView):
