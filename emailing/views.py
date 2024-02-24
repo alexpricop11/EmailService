@@ -1,14 +1,13 @@
+from django.core.mail import send_mail
 from rest_framework import status
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
 
-from emailing.models import Subscriber
+from emailing.models import MailingList, Subscriber
 from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer
 from users.models import CustomUser
-from django.core.mail import send_mail
-from django.conf import settings
 
 
 class CreateMailingList(APIView):
@@ -42,22 +41,18 @@ class AddSubscriber(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        try:
-            serializer = self.serializer_class(data=request.data)
-            if serializer.is_valid(raise_exception=True):
-                email = serializer.validated_data.get('email')
-                mail_list = serializer.validated_data.get('mailing_list')
-                if email and mail_list:
-                    serializer.save()
-                    return Response({'Message': f'Email: {email}, has been added to the in {mail_list}'},
-                                    status=status.HTTP_200_OK)
-                else:
-                    return Response({'Error': 'Field is required.'})
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            email = serializer.validated_data.get('email')
+            mail_list = serializer.validated_data.get('mailing_list')
+            if email and mail_list:
+                serializer.save()
+                return Response({'Message': f'Email: {email}, has been added to the in {mail_list}'},
+                                status=status.HTTP_200_OK)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except KeyError:
-            return Response({'error': 'Request is messing from serializer context'},
-                            status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Error': 'Field is required.'})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SendMessage(APIView):
@@ -68,16 +63,16 @@ class SendMessage(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            subject = serializer.validated_data['subject'],
-            text = serializer.validated_data['text'],
-            from_email = [email for email in 'mailing_list']
-            sent_mail = send_mail(
-                subject,
-                text,
-                from_email
-            )
-            return Response({'Message': sent_mail}, status=status.HTTP_200_OK)
-        return Response({serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            subject = request.POST.get('subject')
+            text = request.POST.get('text')
+            from_email = request.POST.get('from_email')
+            recipient_list = request.POST.getlist('recipient_list', [])
+
+            send_mail(subject, text, from_email, recipient_list)
+
+            return Response({'message': 'Emailurile au fost trimise cu succes!'})
+        else:
+            return Response({'error': 'Doar metoda POST este acceptată pentru acest endpoint!'}, status=400)
 
 
 class RemoveSubscriber(APIView):
