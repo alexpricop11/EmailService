@@ -4,6 +4,8 @@ from rest_framework.authentication import BasicAuthentication, SessionAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from emailing.models import Subscriber
 from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer
 from users.models import CustomUser
 
@@ -46,8 +48,13 @@ class AddSubscriber(APIView):
             emails = serializer.validated_data.get('emails')
             mailing_list = serializer.validated_data.get('mailing_list')
             if emails and mailing_list:
-                return Response({'Message': f'Email: {emails}, has been added to the in {mailing_list}'},
-                                status=status.HTTP_200_OK)
+                for email in emails:
+                    if not Subscriber.objects.filter(email=email, mailing_list=mailing_list).exists():
+                        Subscriber.objects.create(email=email, mailing_list=mailing_list)
+                        return Response({'Message': f'Email: {emails}, has been added to the in {mailing_list}'},
+                                        status=status.HTTP_200_OK)
+                    else:
+                        return Response({'Error': f'{email} email exists in {mailing_list}'})
             else:
                 return Response({'Error': 'Both emails and mailing_list fields are required and cannot be empty.'},
                                 status=status.HTTP_400_BAD_REQUEST)
