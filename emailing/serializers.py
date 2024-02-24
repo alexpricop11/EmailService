@@ -26,11 +26,11 @@ class SubscriberSerializer(serializers.ModelSerializer):
             self.fields['mailing_list'].queryset = MailingList.objects.filter(created_by=request.user)
 
     def create(self, validated_data):
-        validated_data['mailing_list'] = MailingList.objects.get(pk=validated_data['mailing_list'],
+        validated_data['mailing_list'] = MailingList.objects.get(name=validated_data['mailing_list'],
                                                                  created_by=self.context['request'].user)
         return super().create(validated_data)
 
-
+ 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message

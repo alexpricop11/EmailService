@@ -1,11 +1,9 @@
-from django.core.mail import send_mail
 from rest_framework import status
+from django.core.mail import send_mail
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from emailing.models import MailingList, Subscriber
 from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer
 from users.models import CustomUser
 
@@ -41,7 +39,7 @@ class AddSubscriber(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data, context={'request': request, 'user': request.user})
         if serializer.is_valid(raise_exception=True):
             email = serializer.validated_data.get('email')
             mail_list = serializer.validated_data.get('mailing_list')

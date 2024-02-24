@@ -11,7 +11,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=CustomUser.objects.all(), message='This email is already in use.')]
     )
-    password = serializers.CharField(min_length=8, write_only=True)
+    password = serializers.CharField(min_length=8, write_only=True, style={'input_type': 'password'})
 
     class Meta:
         model = CustomUser
@@ -27,7 +27,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
-    password = serializers.CharField(max_length=120, write_only=True)
+    password = serializers.CharField(max_length=120, write_only=True, style={'input_type': 'password'})
 
     class Meta:
         model = CustomUser
