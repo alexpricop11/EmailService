@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -24,11 +25,11 @@ SECRET_KEY = 'django-insecure-2yyu5(3sxb+pfdnccikdr1%v^kv8&#&vaski^(axb^-e(9!h_g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'host_smtp'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'utilizator_smtp'
-EMAIL_HOST_PASSWORD = 'parola_smtp'
+EMAIL_HOST_USER = "apricop05@gmail.com"
+EMAIL_HOST_PASSWORD = "fkprnjwionqlsttg"
 
 ALLOWED_HOSTS = ['*']
 

@@ -3,8 +3,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
-from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer
+
+from emailing.models import Subscriber
+from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer
 from users.models import CustomUser
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class CreateMailingList(APIView):
@@ -39,10 +43,10 @@ class AddSubscriber(APIView):
 
     def post(self, request):
         try:
-            serializer = self.serializer_class(data=request.data, many=True)
+            serializer = self.serializer_class(data=request.data)
             if serializer.is_valid(raise_exception=True):
-                email = serializer.validated_data['email']
-                mail_list = serializer.validated_data['mailing_list']
+                email = serializer.validated_data.get('email')
+                mail_list = serializer.validated_data.get('mailing_list')
                 if email and mail_list:
                     serializer.save()
                     return Response({'Message': f'Email: {email}, has been added to the in {mail_list}'},
@@ -57,7 +61,23 @@ class AddSubscriber(APIView):
 
 
 class SendMessage(APIView):
-    ...
+    serializer_class = MessageSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            subject = serializer.validated_data['subject'],
+            text = serializer.validated_data['text'],
+            from_email = [email for email in 'mailing_list']
+            sent_mail = send_mail(
+                subject,
+                text,
+                from_email
+            )
+            return Response({'Message': sent_mail}, status=status.HTTP_200_OK)
+        return Response({serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RemoveSubscriber(APIView):
