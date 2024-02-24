@@ -42,15 +42,15 @@ class AddSubscriber(APIView):
         try:
             serializer = self.serializer_class(data=request.data, context={'request': request, 'user': request.user})
             serializer.is_valid(raise_exception=True)
-
             serializer.save()
-
             emails = serializer.validated_data.get('emails')
             mailing_list = serializer.validated_data.get('mailing_list')
             if emails and mailing_list:
                 return Response({'Message': f'Email: {emails}, has been added to the in {mailing_list}'},
                                 status=status.HTTP_200_OK)
-            return Response({'Error': 'a'})
+            else:
+                return Response({'Error': 'Both emails and mailing_list fields are required and cannot be empty.'},
+                                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
