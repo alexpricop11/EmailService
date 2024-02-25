@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from emailing.models import Subscriber, MailingList
 from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer, \
-    RemoveSubscriberSerializer
+    RemoveSubscriberSerializer, AllListMailingSerializer, AllUsersMailingListSerializer
 from users.models import CustomUser
 
 
@@ -113,11 +113,25 @@ class RemoveSubscriber(APIView):
 
 
 class AllListMailing(APIView):
-    ...
+    serializer_class = AllListMailingSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        list_mailing = MailingList.objects.filter(created_by=request.user)
+        serializer = self.serializer_class(list_mailing, many=True)
+        return Response(serializer.data)
 
 
 class AllUsersMailingList(APIView):
-    ...
+    serializer_class = AllUsersMailingListSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        list_subscriber = Subscriber.objects.filter(mailing_list__created_by=request.user)
+        serializer = self.serializer_class(list_subscriber, many=True)
+        return Response(serializer.data)
 
 
 class EmailSent(APIView):

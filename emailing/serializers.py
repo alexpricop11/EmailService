@@ -71,3 +71,32 @@ class RemoveSubscriberSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             self.fields['email'].queryset = Subscriber.objects.filter(email=request.email)
+
+
+class AllListMailingSerializer(serializers.ModelSerializer):
+    created_by = serializers.CharField(source='created_by.username', read_only=True)
+
+    class Meta:
+        model = MailingList
+        fields = ['name', 'created_by']
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class AllUsersMailingListSerializer(serializers.ModelSerializer):
+    subscribers = serializers.SerializerMethodField()
+    mailing_list = serializers.CharField(source='mailing_list.name', read_only=True)
+
+    class Meta:
+        model = Subscriber
+        fields = ['mailing_list', 'subscribers']
+
+    @staticmethod
+    def get_subscribers(obj):  # TODO Arata aceeasi lista de cate ori este subscriberi
+        subscribers = Subscriber.objects.filter(mailing_list=obj.mailing_list)
+        if subscribers.exists():
+            return [subscriber.email for subscriber in subscribers]
+        else:
+            return []
