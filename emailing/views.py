@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from emailing.models import Subscriber, MailingList
-from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer
+from emailing.serializers import CreateMailingListSerializer, SubscriberSerializer, MessageSerializer, \
+    RemoveSubscriberSerializer
 from users.models import CustomUser
 
 
@@ -69,7 +70,7 @@ class AddSubscriber(APIView):
             return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class SendMessage(APIView):
+class SendMessage(APIView):  # TODO
     serializer_class = MessageSerializer
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -90,7 +91,25 @@ class SendMessage(APIView):
 
 
 class RemoveSubscriber(APIView):
-    ...
+    serializer_class = RemoveSubscriberSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            serializer = self.serializer_class(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                email = serializer.validated_data.get('email')
+                mailing_list = serializer.validated_data.get('mailing_list')
+                if email and mailing_list:
+                    email.delete()
+                    return Response({"Message": "Subscriber has been deleted."}, status=status.HTTP_204_NO_CONTENT)
+                else:
+                    return Response({'Error': "This field is required."})
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AllListMailing(APIView):
@@ -98,4 +117,8 @@ class AllListMailing(APIView):
 
 
 class AllUsersMailingList(APIView):
+    ...
+
+
+class EmailSent(APIView):
     ...

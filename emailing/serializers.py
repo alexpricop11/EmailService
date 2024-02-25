@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from emailing.models import MailingList, Subscriber, Message
 
 
@@ -50,3 +51,23 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['subject', 'text', 'from_email', 'timestamp']
+
+
+class RemoveSubscriberSerializer(serializers.ModelSerializer):
+    email = serializers.SlugRelatedField(slug_field='email', queryset=Subscriber.objects.all())
+
+    class Meta:
+        model = Subscriber
+        fields = ['email', 'mailing_list']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            self.fields['mailing_list'].queryset = MailingList.objects.filter(created_by=request.user)
+
+    def delete_subs(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            self.fields['email'].queryset = Subscriber.objects.filter(email=request.email)
