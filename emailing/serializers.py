@@ -108,7 +108,8 @@ class AllUsersMailingListSerializer(serializers.ModelSerializer):
 
 class EmailsSentSerializer(serializers.ModelSerializer):
     mailing_list = serializers.CharField(source='mailing_list.name', read_only=True)
+    timestamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
 
     class Meta:
         model = Message
-        fields = ['subject', 'mailing_list']
+        fields = ['subject', 'mailing_list', 'timestamp']
