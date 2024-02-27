@@ -21,9 +21,11 @@ class Subscriber(models.Model):
 class Message(models.Model):
     subject = models.CharField(max_length=100)
     text = models.TextField()
-    from_email = models.ForeignKey(MailingList, on_delete=models.CASCADE)
+    mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return (
-            f'Subject: {self.subject}, text: {self.text}, from_email: {self.from_email}, Timestamp: {self.timestamp}')
+            f'Subject: {self.subject}, text: {self.text}, mailing_list: {self.mailing_list}, '
+            f'Timestamp: {self.timestamp}')
+
