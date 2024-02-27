@@ -28,4 +28,3 @@ class Message(models.Model):
         return (
             f'Subject: {self.subject}, text: {self.text}, mailing_list: {self.mailing_list}, '
             f'Timestamp: {self.timestamp}')
-
