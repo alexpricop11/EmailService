@@ -66,12 +66,12 @@ class SendMessage(BaseAPIView):
             try:
                 mailing_list = MailingList.objects.get(name=mailing_list, created_by=request.user)
                 subscribers = Subscriber.objects.filter(mailing_list=mailing_list)
-                for subscriber in subscribers:
-                    send_mail(subject, text, mailing_list.name, [subscriber.email])
-                    Message.objects.create(
-                        subject=subject,
-                        mailing_list=mailing_list,
-                    )
+                recipient_list = [subscriber.email for subscriber in subscribers]
+                send_mail(subject, text, mailing_list.name, recipient_list)
+                Message.objects.create(
+                    subject=subject,
+                    mailing_list=mailing_list,
+                )
                 return Response({"Success": "The message was sent."}, status=status.HTTP_200_OK)
             except MailingList.DoesNotExist:
                 return Response({'Error': "This mailing list does not exist or does not belong to the current user."},
@@ -127,7 +127,7 @@ class EmailSent(APIView):
     @staticmethod
     def get(request):
         try:
-            sent_emails = Message.objects.filter(mailing_list__created_by=request.user)
+            sent_emails = Message.objects.filter(mailing_list__created_by=request.user).order_by('-timestamp')
             serializer = EmailsSentSerializer(sent_emails, many=True)
             return Response(serializer.data)
         except Exception as e:
