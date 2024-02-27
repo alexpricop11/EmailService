@@ -65,8 +65,7 @@ class SendMessage(BaseAPIView):
             mailing_list = serializer.validated_data.get('mailing_list')
             try:
                 mailing_list = MailingList.objects.get(name=mailing_list, created_by=request.user)
-                subscribers = Subscriber.objects.filter(mailing_list=mailing_list)
-                recipient_list = [subscriber.email for subscriber in subscribers]
+                recipient_list = Subscriber.objects.filter(mailing_list=mailing_list).values_list('email', flat=True)
                 send_mail(subject, text, mailing_list.name, recipient_list)
                 Message.objects.create(
                     subject=subject,
